@@ -1,38 +1,16 @@
 var express = require("express"),
     app = express(),
     bodyParser = require("body-parser"),
-    // Per collegarsi al db e debuggare da powershell: 
-    // ii "C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe"
-    mongoose = require("mongoose");
+    mongoose = require("mongoose"),
+    Campground = require("./models/campground"),
+    Comment = require("./models/comment"),
+    seedDB = require("./seeds");
 
+/*      Configurazione      */
+// Per collegarsi al db e debuggare da powershell: 
+// ii "C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe"
 // Crea o si collega al DB
 mongoose.connect("mongodb://localhost/yelp_camp");
-
-// Schema setup
-var campGroundSchema = new mongoose.Schema(
-    {
-        name: String,
-        image: String,
-        description: String,
-    }
-);
-
-// Schema compile in modelper avere la classe utilizzabile
-var Campground = mongoose.model("Campground", campGroundSchema);
-
-// // Codice esempio che crea un nuovo campGround
-// Campground.create({
-//     name: "Salmon Creek",
-//     image: "http://www.photosforclass.com/download/8288665755",
-//     description: "Bellissima descrizione inutile del mio primo campground."
-// }, function (err, nuovoOggetto) {
-//     if (err) {
-//         console.log(err);
-//     } else {
-//         console.log("Nuovo Oggetto Creato!!");
-//         console.log(nuovoOggetto);
-//     }
-// });
 
 // Setto ejs come VE
 app.set("view engine", "ejs");
@@ -40,6 +18,8 @@ app.set("view engine", "ejs");
 // Faccio usare il bodyParser a express
 app.use(bodyParser.urlencoded({ extended: true }));
 
+/*          Rigenerazione del DB            */
+seedDB();
 
 // Inizio dell'Applicazione
 app.get("/", function (req, res) {
@@ -62,7 +42,7 @@ app.post("/campgrounds", function (req, res) {
     var image = req.body.image;
     var description = req.body.description;
     var newDBObj = { name: name, image: image, description: description };
-    
+
     //Crea il nuovo campground e lo salva in db
     Campground.create(newDBObj, function (err, campgrounds) {
         if (err) {
@@ -83,7 +63,7 @@ app.get("/campgrounds/new", function (req, res) {
 // Pagina del singolo CampGround
 app.get("/campgrounds/:id", function (req, res) {
     // prende il camp tramite l'id passato nell'url
-    Campground.findById(req.params.id, function (err, foundCamp) {
+    Campground.findById(req.params.id).populate("comments").exec(function (err, foundCamp) {
         if (err) {
             console.log(err);
         } else {
@@ -91,7 +71,6 @@ app.get("/campgrounds/:id", function (req, res) {
             res.render("show", { campground: foundCamp });
         }
     })
-
 });
 
 app.listen("3000", function () {
