@@ -18,6 +18,9 @@ app.set("view engine", "ejs");
 // Faccio usare il bodyParser a express
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Includo le mie modifiche CSS
+app.use(express.static(__dirname + "/public"));
+
 /*          Rigenerazione del DB            */
 seedDB();
 
