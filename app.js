@@ -3,6 +3,7 @@ var express = require("express"),
     bodyParser = require("body-parser"),
     mongoose = require("mongoose"),
     passport = require("passport"),
+    methodOverride = require("method-override"),
     LocalStrategy = require("passport-local"),
     Campground = require("./models/campground"),
     Comment = require("./models/comment"),
@@ -18,7 +19,7 @@ var commentRoutes = require("./routes/comments"),
 app.use(bodyParser.urlencoded({ extended: true }));
 
 /*      Configurazione      */
-// Per collegarsi al db e debuggare da powershell: 
+// Per collegarsi al db e debuggare da powershell:
 // ii "C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe"
 // Crea o si collega al DB
 mongoose.connect("mongodb://localhost/yelp_camp");
@@ -29,8 +30,12 @@ app.set("view engine", "ejs");
 // Includo le mie modifiche CSS
 app.use(express.static(__dirname + "/public"));
 
-/*          Rigenerazione del DB            */
-seedDB();
+// Includo method override
+app.use(methodOverride("_method"));
+
+
+/*          Rigenerazione opzionale del DB            */
+//seedDB();
 
 /*Passport config*/
 app.use(require("express-session")({
@@ -56,6 +61,6 @@ app.use("/", indexRoutes);
 app.use("/campgrounds", campgroundRoutes);
 app.use("/campgrounds/:id/comments", commentRoutes);
 
-app.listen("3000", function () {
-    console.log("server on localhost:3000 started!!");
+app.listen("3000", function () { 
+    console.log("server on localhost:3000 started");
 });

@@ -28,7 +28,7 @@ function seedDB() {
             console.log(err);
         }
         else {
-            console.log("removed campgrounds!");
+            console.log("removed campgrounds");
         }
 
         // Rimuove tutti i commenti
@@ -37,7 +37,7 @@ function seedDB() {
                 console.log(err);
             }
             else {
-                console.log("removed comments!");
+                console.log("removed comments");
             }
 
             // Li riaggiunge prendendoli dall'array hardcoded

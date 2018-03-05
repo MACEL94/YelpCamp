@@ -14,15 +14,27 @@ router.get("/", function (req, res) {
 });
 
 // Creazione
-router.post("/", function (req, res) {
+router.post("/", isLoggedIn, function (req, res) {
     // Prendo i dati dal form
     var name = req.body.name;
     var image = req.body.image;
     var description = req.body.description;
-    var newDBObj = { name: name, image: image, description: description };
+    // AUTORE
+    var author = {
+        id: req.user._id,
+        username: req.user.username
+    };
+
+    // CampgroundObj
+    var newDBObj = {
+        name: name,
+        image: image,
+        description: description,
+        author: author
+    };
 
     //Crea il nuovo campground e lo salva in db
-    Campground.create(newDBObj, function (err, campgrounds) {
+    Campground.create(newDBObj, function (err, newlyCreatedCamp) {
         if (err) {
             console.log(err);
         }
@@ -34,7 +46,7 @@ router.post("/", function (req, res) {
 });
 
 // Nuovo campground - NUOVO
-router.get("/new", function (req, res) {
+router.get("/new", isLoggedIn, function (req, res) {
     res.render("campgrounds/new");
 });
 
@@ -50,5 +62,55 @@ router.get("/:id", function (req, res) {
         }
     })
 });
+
+// EDIT CAMPGROUND
+router.get("/:id/edit", function (req, res) {
+    // Carico l'id e lo renderizzo nel form
+    Campground.findById(req.params.id, function (err, foundCampground) {
+        if (err) {
+            res.redirect("/campgrounds");
+        }
+        else {
+            res.render("campgrounds/edit", { campground: foundCampground });
+        }
+    });
+});
+
+// UPDATE CAMPGROUND
+router.put("/:id", function (req, res) {
+    // Carico il camp tramite l'id e poi ne faccio l'update
+    Campground.findByIdAndUpdate(req.params.id, req.body.campground, function (err, updatedCamp) {
+        if (err) {
+            res.redirect("/campgrounds");
+        }
+        else {
+            res.redirect("/campgrounds/" + req.params.id);
+        }
+    });
+});
+
+// DESTROY
+router.delete("/:id", function (req, res) {
+    // Carico il camp tramite l'id e poi ne faccio l'update
+    Campground.findByIdAndRemove(req.params.id, req.body.campground, function (err, updatedCamp) {
+        if (err) {
+            console.log(err);
+        }
+
+        // A prescindere devo riportare l'utente indietro
+        res.redirect("/campgrounds");
+    });
+});
+
+
+// Controlla se l'utente è loggato, middleware
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    else {
+        res.redirect("/login");
+    }
+}
 
 module.exports = router;

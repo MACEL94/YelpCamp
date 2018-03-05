@@ -1,12 +1,12 @@
 var express = require("express");
-var router = express.Router({mergeParams: true});
+var router = express.Router({ mergeParams: true });
 var Campground = require("../models/campground");
 var Comment = require("../models/comment");
 
 // COMMENTI
 // Form nuovo commento
 router.get("/new", isLoggedIn, function (req, res) {
-    //Trova l'oggetto dall'id
+    // Trova l'oggetto dall'id
     Campground.findById(req.params.id, function (err, dbCamp) {
         if (err) {
             console.log(err);
@@ -20,9 +20,9 @@ router.get("/new", isLoggedIn, function (req, res) {
 // Creazione del commento
 router.post("/", isLoggedIn, function (req, res) {
     // Ho già raggruppato i dati necessari in un oggetto comment
-    //Trova l'oggetto dall'id
+    // Trova l'oggetto dall'id
     Campground.findById(req.params.id, function (err, dbCamp) {
-        //Crea il nuovo commento in db
+        // Crea il nuovo commento in db
         if (err) {
             console.log(err);
             res.redirect("/campgrounds");
@@ -33,10 +33,16 @@ router.post("/", isLoggedIn, function (req, res) {
                     console.log(err);
                     res.redirect("/campgrounds");
                 } else {
+                    // Aggiungo username e id al commento
+                    dbnewComment.author.id = req.user.id;
+                    dbnewComment.author.username = req.user.username;
+                    // Salvo
+                    dbnewComment.save();
+
                     // Collego il nuovo commento al campground in db
                     dbCamp.comments.push(dbnewComment._id);
 
-                    //Salvo
+                    // Salvo
                     dbCamp.save();
 
                     // Infine ridirigo alla pagina corretta
@@ -47,7 +53,7 @@ router.post("/", isLoggedIn, function (req, res) {
     })
 });
 
-//Controlla se l'utente è loggato, middleware
+// Controlla se l'utente è loggato, middleware
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
