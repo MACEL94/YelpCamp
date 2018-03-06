@@ -53,6 +53,40 @@ router.post("/", isLoggedIn, function (req, res) {
     })
 });
 
+// Edit
+router.get("/:comment_id/edit", isLoggedIn, function (req, res) {
+    // Trova l'oggetto dall'id
+    Campground.findById(req.params.id, function (err, dbCamp) {
+        if (err) {
+            res.redirect("back");
+        }
+        else {
+            Comment.findById(req.params.comment_id, function (err, foundComment) {
+                if (err) {
+                    res.redirect("back");
+                }
+                else {
+                    res.render("comments/edit", { campground: dbCamp, comment: foundComment });
+                }
+            });
+        }
+    });
+});
+
+// Update
+router.post("/:comment_id", isLoggedIn, function (req, res) {
+    // Trova l'oggetto dall'id
+    Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, function (err, updatedComment) {
+        if (err) {
+            res.redirect("back");
+        }
+        else {
+            // Al campground del commento
+            res.redirect("../../" + req.params.id);
+        }
+    });
+});
+
 // Controlla se l'utente è loggato, middleware
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {

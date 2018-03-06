@@ -64,20 +64,15 @@ router.get("/:id", function (req, res) {
 });
 
 // EDIT CAMPGROUND
-router.get("/:id/edit", function (req, res) {
-    // Carico l'id e lo renderizzo nel form
+router.get("/:id/edit", checkCampgroundOwnership, function (req, res) {
+    // Carico l'id e se è possibile lo renderizzo nel form
     Campground.findById(req.params.id, function (err, foundCampground) {
-        if (err) {
-            res.redirect("/campgrounds");
-        }
-        else {
-            res.render("campgrounds/edit", { campground: foundCampground });
-        }
+        res.render("campgrounds/edit", { campground: foundCampground });
     });
 });
 
 // UPDATE CAMPGROUND
-router.put("/:id", function (req, res) {
+router.put("/:id", checkCampgroundOwnership, function (req, res) {
     // Carico il camp tramite l'id e poi ne faccio l'update
     Campground.findByIdAndUpdate(req.params.id, req.body.campground, function (err, updatedCamp) {
         if (err) {
@@ -90,7 +85,7 @@ router.put("/:id", function (req, res) {
 });
 
 // DESTROY
-router.delete("/:id", function (req, res) {
+router.delete("/:id", checkCampgroundOwnership, function (req, res) {
     // Carico il camp tramite l'id e poi ne faccio l'update
     Campground.findByIdAndRemove(req.params.id, req.body.campground, function (err, updatedCamp) {
         if (err) {
@@ -110,6 +105,29 @@ function isLoggedIn(req, res, next) {
     }
     else {
         res.redirect("/login");
+    }
+}
+
+// Controlla se l'utente è l'utente corretto oltre ad essere loggato
+function checkCampgroundOwnership(req, res, next) {
+    if (req.isAuthenticated()) {
+        // Carico l'id e se è possibile lo renderizzo nel form
+        Campground.findById(req.params.id, function (err, foundCampground) {
+            if (err) {
+                res.redirect("back");
+            }
+            else {
+                // Controllo che sia l'effettivo creatore del campground
+                if (foundCampground.author.id.equals(req.user._id)) {
+                    next();
+                } else {
+                    res.redirect("back");
+                }
+            }
+        });
+    } else {
+        // Rimando indietro l'user
+        res.redirect("back");
     }
 }
 
