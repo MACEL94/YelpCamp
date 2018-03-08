@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var Campground = require("../models/campground");
+var middleware = require("../middleware");
 
 // Index 
 router.get("/", function (req, res) {
@@ -14,7 +15,7 @@ router.get("/", function (req, res) {
 });
 
 // Creazione
-router.post("/", isLoggedIn, function (req, res) {
+router.post("/", middleware.isLoggedIn, function (req, res) {
     // Prendo i dati dal form
     var name = req.body.name;
     var image = req.body.image;
@@ -36,7 +37,8 @@ router.post("/", isLoggedIn, function (req, res) {
     //Crea il nuovo campground e lo salva in db
     Campground.create(newDBObj, function (err, newlyCreatedCamp) {
         if (err) {
-            console.log(err);
+            req.flash("error", "Unexpected error occurred, please retry");
+            req.redirect("back");
         }
         else {
             // ridirigo alla pagina corretta
@@ -46,7 +48,7 @@ router.post("/", isLoggedIn, function (req, res) {
 });
 
 // Nuovo campground - NUOVO
-router.get("/new", isLoggedIn, function (req, res) {
+router.get("/new", middleware.isLoggedIn, function (req, res) {
     res.render("campgrounds/new");
 });
 
@@ -64,7 +66,7 @@ router.get("/:id", function (req, res) {
 });
 
 // EDIT CAMPGROUND
-router.get("/:id/edit", checkCampgroundOwnership, function (req, res) {
+router.get("/:id/edit", middleware.checkCampGroundOwnership, function (req, res) {
     // Carico l'id e se è possibile lo renderizzo nel form
     Campground.findById(req.params.id, function (err, foundCampground) {
         res.render("campgrounds/edit", { campground: foundCampground });
@@ -72,7 +74,7 @@ router.get("/:id/edit", checkCampgroundOwnership, function (req, res) {
 });
 
 // UPDATE CAMPGROUND
-router.put("/:id", checkCampgroundOwnership, function (req, res) {
+router.put("/:id", middleware.checkCampGroundOwnership, function (req, res) {
     // Carico il camp tramite l'id e poi ne faccio l'update
     Campground.findByIdAndUpdate(req.params.id, req.body.campground, function (err, updatedCamp) {
         if (err) {
@@ -84,51 +86,22 @@ router.put("/:id", checkCampgroundOwnership, function (req, res) {
     });
 });
 
-// DESTROY
-router.delete("/:id", checkCampgroundOwnership, function (req, res) {
+// DELETE
+router.delete("/:id", middleware.checkCampGroundOwnership, function (req, res) {
     // Carico il camp tramite l'id e poi ne faccio l'update
     Campground.findByIdAndRemove(req.params.id, req.body.campground, function (err, updatedCamp) {
-        if (err) {
-            console.log(err);
-        }
-
-        // A prescindere devo riportare l'utente indietro
+        res.flash("success", "Campground Deleted");
         res.redirect("/campgrounds");
     });
 });
 
-
-// Controlla se l'utente è loggato, middleware
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    else {
-        res.redirect("/login");
-    }
-}
-
-// Controlla se l'utente è l'utente corretto oltre ad essere loggato
-function checkCampgroundOwnership(req, res, next) {
-    if (req.isAuthenticated()) {
-        // Carico l'id e se è possibile lo renderizzo nel form
-        Campground.findById(req.params.id, function (err, foundCampground) {
-            if (err) {
-                res.redirect("back");
-            }
-            else {
-                // Controllo che sia l'effettivo creatore del campground
-                if (foundCampground.author.id.equals(req.user._id)) {
-                    next();
-                } else {
-                    res.redirect("back");
-                }
-            }
-        });
-    } else {
-        // Rimando indietro l'user
-        res.redirect("back");
-    }
-}
+// N.B. Nel caso in cui qualcuno aggiunga qualcosa che non dovbrebbe, mi riservo di poterli cancellare con questo route
+router.delete("/:id/ADMINROUTE", function (req, res) {
+    // Carico il camp tramite l'id e poi ne faccio l'update
+    Campground.findByIdAndRemove(req.params.id, req.body.campground, function (err, updatedCamp) {
+        res.flash("success", "Campground Deleted");
+        res.redirect("/campgrounds");
+    });
+});
 
 module.exports = router;

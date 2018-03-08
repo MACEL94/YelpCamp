@@ -2,10 +2,11 @@ var express = require("express");
 var router = express.Router({ mergeParams: true });
 var Campground = require("../models/campground");
 var Comment = require("../models/comment");
+var middleware = require("../middleware");
 
 // COMMENTI
 // Form nuovo commento
-router.get("/new", isLoggedIn, function (req, res) {
+router.get("/new", middleware.isLoggedIn, function (req, res) {
     // Trova l'oggetto dall'id
     Campground.findById(req.params.id, function (err, dbCamp) {
         if (err) {
@@ -18,7 +19,7 @@ router.get("/new", isLoggedIn, function (req, res) {
 });
 
 // Creazione del commento
-router.post("/", isLoggedIn, function (req, res) {
+router.post("/", middleware.isLoggedIn, function (req, res) {
     // Ho già raggruppato i dati necessari in un oggetto comment
     // Trova l'oggetto dall'id
     Campground.findById(req.params.id, function (err, dbCamp) {
@@ -30,7 +31,7 @@ router.post("/", isLoggedIn, function (req, res) {
             // Creo il nuovo commento
             Comment.create(req.body.comment, function (err, dbnewComment) {
                 if (err) {
-                    console.log(err);
+                    req.flash("error", "Something went wrong");
                     res.redirect("/campgrounds");
                 } else {
                     // Aggiungo username e id al commento
@@ -45,6 +46,9 @@ router.post("/", isLoggedIn, function (req, res) {
                     // Salvo
                     dbCamp.save();
 
+                    // Messaggio per l'user
+                    req.flash("success", "Comment created!");
+                    
                     // Infine ridirigo alla pagina corretta
                     res.redirect("/campgrounds/" + dbCamp._id);
                 }
@@ -54,7 +58,7 @@ router.post("/", isLoggedIn, function (req, res) {
 });
 
 // Edit
-router.get("/:comment_id/edit", isLoggedIn, function (req, res) {
+router.get("/:comment_id/edit", middleware.checkCommentOwnership, function (req, res) {
     // Trova l'oggetto dall'id
     Campground.findById(req.params.id, function (err, dbCamp) {
         if (err) {
@@ -74,27 +78,28 @@ router.get("/:comment_id/edit", isLoggedIn, function (req, res) {
 });
 
 // Update
-router.post("/:comment_id", isLoggedIn, function (req, res) {
+router.put("/:comment_id", middleware.checkCommentOwnership, function (req, res) {
     // Trova l'oggetto dall'id
     Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, function (err, updatedComment) {
-        if (err) {
-            res.redirect("back");
-        }
-        else {
-            // Al campground del commento
-            res.redirect("../../" + req.params.id);
-        }
+        // Al campground del commento
+        res.redirect("../../" + req.params.id);
     });
 });
 
-// Controlla se l'utente è loggato, middleware
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    else {
-        res.redirect("/login");
-    }
-}
+// Delete
+router.delete("/:comment_id", middleware.checkCommentOwnership, function (req, res) {
+    Comment.findByIdAndRemove(req.params.comment_id, req.body.comment, function (err, updatedComment) {
+        res.flash("success", "Comment Deleted");
+        res.redirect("../../" + req.params.id);
+    });
+});
+
+// N.B. Nel caso in cui qualcuno aggiunga qualcosa che non dovbrebbe, mi riservo di poterli cancellare con questo route
+router.delete("/:comment_id/ADMINROUTE", function (req, res) {
+    Comment.findByIdAndRemove(req.params.comment_id, req.body.comment, function (err, updatedComment) {
+        res.flash("success", "Comment Deleted");
+        res.redirect("../../" + req.params.id);
+    });
+});
 
 module.exports = router;
