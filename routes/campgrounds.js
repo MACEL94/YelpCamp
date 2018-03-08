@@ -14,6 +14,7 @@ router.get("/", function (req, res) {
     })
 });
 
+
 // Creazione
 router.post("/", middleware.isLoggedIn, function (req, res) {
     // Prendo i dati dal form
@@ -86,20 +87,26 @@ router.put("/:id", middleware.checkCampGroundOwnership, function (req, res) {
     });
 });
 
-// DELETE
+// DELETE 
 router.delete("/:id", middleware.checkCampGroundOwnership, function (req, res) {
     // Carico il camp tramite l'id e poi ne faccio l'update
-    Campground.findByIdAndRemove(req.params.id, req.body.campground, function (err, updatedCamp) {
-        res.flash("success", "Campground Deleted");
-        res.redirect("/campgrounds");
+    Campground.findByIdAndRemove(req.params.id, function (err) {
+        if (err) {
+            req.flash("success", "Campground Deleted");
+            res.redirect("back");
+        }
+        else{
+            req.flash("success", "Campground Deleted");
+            res.redirect("/campgrounds");
+        }
     });
 });
 
 // N.B. Nel caso in cui qualcuno aggiunga qualcosa che non dovbrebbe, mi riservo di poterli cancellare con questo route
 router.delete("/:id/ADMINROUTE", function (req, res) {
     // Carico il camp tramite l'id e poi ne faccio l'update
-    Campground.findByIdAndRemove(req.params.id, req.body.campground, function (err, updatedCamp) {
-        res.flash("success", "Campground Deleted");
+    Campground.findByIdAndRemove(req.params.id, function (err) {
+        req.flash("success", "Campground Deleted");
         res.redirect("/campgrounds");
     });
 });

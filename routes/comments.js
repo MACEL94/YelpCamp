@@ -48,7 +48,7 @@ router.post("/", middleware.isLoggedIn, function (req, res) {
 
                     // Messaggio per l'user
                     req.flash("success", "Comment created!");
-                    
+
                     // Infine ridirigo alla pagina corretta
                     res.redirect("/campgrounds/" + dbCamp._id);
                 }
@@ -88,16 +88,16 @@ router.put("/:comment_id", middleware.checkCommentOwnership, function (req, res)
 
 // Delete
 router.delete("/:comment_id", middleware.checkCommentOwnership, function (req, res) {
-    Comment.findByIdAndRemove(req.params.comment_id, req.body.comment, function (err, updatedComment) {
-        res.flash("success", "Comment Deleted");
+    Comment.findByIdAndRemove(req.params.comment_id, function (err) {
+        req.flash("success", "Comment Deleted");
         res.redirect("../../" + req.params.id);
     });
 });
 
 // N.B. Nel caso in cui qualcuno aggiunga qualcosa che non dovbrebbe, mi riservo di poterli cancellare con questo route
 router.delete("/:comment_id/ADMINROUTE", function (req, res) {
-    Comment.findByIdAndRemove(req.params.comment_id, req.body.comment, function (err, updatedComment) {
-        res.flash("success", "Comment Deleted");
+    Comment.findByIdAndRemove(req.params.comment_id, function (err) {
+        req.flash("success", "Comment Deleted");
         res.redirect("../../" + req.params.id);
     });
 });
