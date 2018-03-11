@@ -34,7 +34,7 @@ app.use(express.static(__dirname + "/public"));
 // Includo method override
 app.use(methodOverride("_method"));
 
-// Faccio usare flash
+// Faccio usare flash 
 app.use(flash());
 /*          Rigenerazione opzionale del DB            */
 //seedDB();
