@@ -37,7 +37,7 @@ app.use(methodOverride("_method"));
 // Faccio usare flash 
 app.use(flash());
 /*          Rigenerazione opzionale del DB            */
-//seedDB();
+seedDB();
 
 /*Passport config*/
 app.use(require("express-session")({
