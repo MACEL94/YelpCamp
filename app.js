@@ -65,6 +65,6 @@ app.use("/", indexRoutes);
 app.use("/campgrounds", campgroundRoutes);
 app.use("/campgrounds/:id/comments", commentRoutes);
 
-app.listen("3000", function () {
-    console.log("server on localhost:3000 started");
+app.listen(process.env.PORT || "3000", function () {
+    console.log("server on localhost:5002 started");
 });
