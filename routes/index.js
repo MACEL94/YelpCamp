@@ -41,7 +41,9 @@ router.get("/login", function (req, res) {
 // user e passw da solo dal body
 router.post("/login", passport.authenticate("local", {
     successRedirect: "/campgrounds",
-    failureRedirect: "/login"
+    failureRedirect: "/login",
+    failureFlash:"Something went wrong while logging in",
+    successFlash: "You've been logged in"
 }));
 
 // logout route

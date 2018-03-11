@@ -18,10 +18,12 @@ var campgroundRoutes = require("./routes/campgrounds"),
 app.use(bodyParser.urlencoded({ extended: true }));
 
 /*      Configurazione      */
-// Per collegarsi al db e debuggare da powershell:
+// Per collegarsi al db e debuggare da powershell in locale:
 // ii "C:\Program Files\MongoDB\Server\3.6\bin\mongo.exe"
-// Crea o si collega al DB
-mongoose.connect("mongodb://localhost/yelp_camp");
+// Crea o si collega al DB in debug
+// mongoose.connect("mongodb://localhost/yelp_camp");
+// In production tramite mlab.com
+mongoose.connect("mongodb://usersdb:password@ds211309.mlab.com:11309/yelpcamp");
 
 // Setto ejs come VE
 app.set("view engine", "ejs");
